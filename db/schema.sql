@@ -31,3 +31,13 @@ CREATE TABLE IF NOT EXISTS rentals (
 -- (선택) 테이블 생성 확인용
 USE comic_rental;
 SHOW TABLES;
+
+
+SELECT *
+FROM comics;
+
+SELECT *
+FROM members;
+
+SELECT *
+FROM rentals;
