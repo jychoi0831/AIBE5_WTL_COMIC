@@ -33,17 +33,14 @@ public class Main {
             // 입력한 번호에 따라 다른 작업을 수행합니다.
             if (choice == 1) {
                 // 회원 등록 기능
-                System.out.print("추가할 회원 ID를 입력하세요: ");
-                String id = scanner.nextLine();
-                System.out.print("추가할 회원의 이름을 입력하세요: ");
+                System.out.println("[ 회원 정보 입력 ]");
+                System.out.print("이름을 입력하세요: ");
                 String name = scanner.nextLine();
-                System.out.print("추가할 회원의 연락처를 입력하세요: ");
+                System.out.print("연락처를 입력하세요: ");
                 String phone = scanner.nextLine();
 
-                // 입력받은 정보로 새로운 Member 객체를 만듭니다.
-                Member newMember = new Member(id, name, phone);
-                // MemberManager의 등록 기능을 호출합니다.
-                manager.addMember(newMember);
+                // MemberManager의 등록 기능을 호출합니다. (내부에서 ID 자동 생성)
+                manager.addMember(name, phone);
 
             } else if (choice == 2) {
                 // 회원 목록 출력 기능

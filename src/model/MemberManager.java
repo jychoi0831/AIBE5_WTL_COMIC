@@ -9,12 +9,26 @@ public class MemberManager {
     // DB를 아직 사용하지 않으므로 회원 정보를 임시로 저장할 빈 리스트(List)를 생성합니다.
     private List<Member> memberList = new ArrayList<>();
 
+    // DB의 시퀀스처럼 자동으로 증가할 회원 번호 (1부터 시작)
+    private static int memberCount = 1;
+
     // 1. 회원 등록 (member-add)
-    public void addMember(Member newMember) {
-        // 전달받은 새로운 회원 객체를 리스트에 추가합니다.
+    public void addMember(String name, String phone) {
+        // "user" 뒤에 숫자를 붙여 자동으로 ID를 생성합니다. (예: user1, user2...)
+        String autoId = "user" + memberCount;
+        
+        // 새로운 회원 객체를 생성합니다.
+        Member newMember = new Member(autoId, name, phone);
+        
+        // 리스트에 추가합니다.
         memberList.add(newMember);
-        System.out.println("✅ [" + newMember.getName() + "] 회원님이 성공적으로 등록되었습니다.");
+        
+        System.out.println("✅ [" + name + "] 회원님이 성공적으로 등록되었습니다. (할당된 ID: " + autoId + ")");
+        
+        // 다음 회원을 위해 번호를 1 증가시킵니다.
+        memberCount++;
     }
+
 
     // 2. 회원 목록 출력 (member-list)
     public void printMemberList() {
