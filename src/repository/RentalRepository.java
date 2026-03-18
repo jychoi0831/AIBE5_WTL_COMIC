@@ -12,80 +12,147 @@ import model.Rental;
 
 public class RentalRepository {
 	
-    // 대여 등록
-    public boolean rent(int memberId, int comicId) {
-        
-        String checkSql = "SELECT * FROM rentals WHERE comic_id = ? AND return_date IS NULL";
-        String insertSql = "INSERT INTO rentals (comic_id, member_id, rent_date) VALUES (?, ?, CURDATE())";
-        
+	public static final String RENT_OK = "RENT_OK";
+    public static final String RENT_NO_MEMBER = "RENT_NO_MEMBER";
+    public static final String RENT_NO_COMIC = "RENT_NO_COMIC";
+    public static final String RENT_ALREADY_RENTED = "RENT_ALREADY_RENTED";
+    public static final String RENT_FAIL = "RENT_FAIL";
+
+    public static final String RETURN_OK = "RETURN_OK";
+    public static final String RETURN_NO_HISTORY = "RETURN_NO_HISTORY";
+    public static final String RETURN_ALREADY_RETURNED = "RETURN_ALREADY_RETURNED";
+    public static final String RETURN_FAIL = "RETURN_FAIL";
+    
+    // 회원 존재 여부 확인
+    public boolean existsMember(long memberId) {
+        String sql = "SELECT 1 FROM members WHERE member_id = ?";
+
         try (
-        		Connection conn = DBUtil.getConnection();
-        		PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+                Connection conn = DBUtil.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)
         ) {
-        	
-        	// 대여 여부 확인
-        	checkStmt.setInt(1, comicId);
-        	ResultSet rs = checkStmt.executeQuery();
-        	
-        	if (rs.next()) {
-        		
-                System.out.println("이미 대여중인 만화책입니다.");
-                return false;
+            pstmt.setLong(1, memberId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
             }
-        	
-        	// 대여 가능 시 INSERT 실행
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
-
-                insertStmt.setInt(1, comicId);
-                insertStmt.setInt(2, memberId);
-
-                insertStmt.executeUpdate();
-
-                System.out.println("대여 완료");
-                
-                return true;
-
-            }
-
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
     }
     
-    // 반납 등록
-    public boolean returnComic(int comicId) {
-    	
-        String checkSql = "SELECT * FROM rentals WHERE comic_id = ? AND return_date IS NULL";
-        String updateSql = "UPDATE rentals SET return_date = CURDATE() WHERE comic_id = ? AND return_date IS NULL";
-        
+    // 만화책 존재 여부 확인
+    public boolean existsComic(long comicId) {
+        String sql = "SELECT 1 FROM comics WHERE comic_id = ?";
+
         try (
-        		Connection conn = DBUtil.getConnection();
-        		PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+                Connection conn = DBUtil.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)
         ) {
-        	
-        	// 대여 여부 확인
-            checkStmt.setInt(1, comicId);
-            ResultSet rs = checkStmt.executeQuery();
-            
-            if (!rs.next()) {
-                System.out.println("대여 중인 만화책이 아닙니다.");
-                return false;
+            pstmt.setLong(1, comicId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
             }
-            
-            // 반납 가능 시 UPDATE 실행
-            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
-            	
-                updateStmt.setInt(1, comicId);
-                
-                updateStmt.executeUpdate();
-                
-                return true;
-            }
-            
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+    
+    // 현재 대여 중 여부 확인
+    public boolean isRented(long comicId) {
+        String sql = "SELECT 1 FROM rentals WHERE comic_id = ? AND return_date IS NULL";
+
+        try (
+                Connection conn = DBUtil.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)
+        ) {
+            pstmt.setLong(1, comicId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    // 대여 진행
+    public String rent(long memberId, long comicId) {
+        if (!existsMember(memberId)) {
+            return RENT_NO_MEMBER;
+        }
+
+        if (!existsComic(comicId)) {
+            return RENT_NO_COMIC;
+        }
+
+        if (isRented(comicId)) {
+            return RENT_ALREADY_RENTED;
+        }
+
+        String sql = "INSERT INTO rentals (comic_id, member_id, rent_date) VALUES (?, ?, CURDATE())";
+
+        try (
+                Connection conn = DBUtil.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)
+        ) {
+            pstmt.setLong(1, comicId);
+            pstmt.setLong(2, memberId);
+
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0 ? RENT_OK : RENT_FAIL;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return RENT_FAIL;
+        }
+    }
+    
+    // 반납 진행
+    public String returnComic(long comicId) {
+        String historySql = "SELECT 1 FROM rentals WHERE comic_id = ?";
+        String rentedSql = "SELECT 1 FROM rentals WHERE comic_id = ? AND return_date IS NULL";
+        String updateSql = "UPDATE rentals SET return_date = CURDATE() WHERE comic_id = ? AND return_date IS NULL";
+
+        try (Connection conn = DBUtil.getConnection()) {
+
+            // 대여 이력 확인
+            try (PreparedStatement pstmt = conn.prepareStatement(historySql)) {
+                pstmt.setLong(1, comicId);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (!rs.next()) {
+                        return RETURN_NO_HISTORY;
+                    }
+                }
+            }
+
+            // 현재 대여 중 여부 확인
+            try (PreparedStatement pstmt = conn.prepareStatement(rentedSql)) {
+                pstmt.setLong(1, comicId);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (!rs.next()) {
+                        return RETURN_ALREADY_RETURNED;
+                    }
+                }
+            }
+
+            // 반납 등록
+            try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+                pstmt.setLong(1, comicId);
+
+                int affectedRows = pstmt.executeUpdate();
+                return affectedRows > 0 ? RETURN_OK : RETURN_FAIL;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return RETURN_FAIL;
         }
     }
     
@@ -122,7 +189,6 @@ public class RentalRepository {
                 rentals.add(rental);
             }
         } catch (SQLException e) {
-            System.out.println("대여 목록 조회 중 오류가 발생했습니다.");
             e.printStackTrace();
         }
 
