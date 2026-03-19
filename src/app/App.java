@@ -64,63 +64,60 @@ public class App {
 		while (true) {
 			System.out.print("Command > ");
 			String cmd = sc.nextLine().trim();
-
-			Rq rq = new Rq(cmd);
-			String action = rq.getAction();
 			
             // exit - 프로그램 종료
-            if ("exit".equals(action)) {
+            if ("exit".equals(cmd)) {
                 System.out.println("프로그램을 종료합니다.");
                 break;
             }
             
             // comic-add - 만화책 등록
-            else if ("comic-add".equals(action)) {
+            else if ("comic-add".equals(cmd)) {
             	doAddComic();
         	}
 
             // comic-list - 만화책 목록
-            else if ("comic-list".equals(action)) {
+            else if ("comic-list".equals(cmd)) {
             	doListComics();
         	}
             
             // comic-detail - 만화책 상세
-            else if ("comic-detail".equals(action)) {
+            else if ("comic-detail".equals(cmd)) {
             	doDetailComic();
         	}
             
             // comic-update - 만화책 수정
-            else if ("comic-update".equals(action)) {
+            else if ("comic-update".equals(cmd)) {
             	doUpdateComic();
         	}
 
             // comic-delete - 만화책 삭제
-            else if ("comic-delete".equals(action)) {
+            else if ("comic-delete".equals(cmd)) {
             	doDeleteComic();
         	}
 
             // member-add - 회원 등록
-            else if ("member-add".equals(action)) {
+            else if ("member-add".equals(cmd)) {
             	doAddMember();
         	}
 
             // member-list - 회원 목록
-            else if ("member-list".equals(action)) {
+            else if ("member-list".equals(cmd)) {
             	doListMembers();
         	}
 
             // rent - 만화책 대여
-            else if ("rent".equals(action)) {
+            else if ("rent".equals(cmd)) {
             	doRent();
             }
             
             // return - 만화책 반납
-            else if ("return".equals(action)) {
+            else if ("return".equals(cmd)) {
             	doReturn();
             }
             
             // rental-list - 만화책 대여 목록
-            else if ("rental-list".equals(action)) {
+            else if ("rental-list".equals(cmd)) {
             	doRentalList();
             }
             
