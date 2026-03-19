@@ -5,14 +5,17 @@ import java.util.Scanner;
 import java.time.LocalDate;
 
 import model.Comic;
+import model.Member;
 import model.Rental;
 import repository.ComicRepository;
+import repository.MemberRepository;
 import repository.RentalRepository;
 
 public class App {
 	
 	Scanner sc = new Scanner(System.in);
 	ComicRepository comicRepository = new ComicRepository();
+	MemberRepository memberRepository = new MemberRepository();
 	RentalRepository rentalRepository = new RentalRepository();
 	
 	public void run() {
@@ -98,12 +101,12 @@ public class App {
 
             // member-add - 회원 등록
             else if ("member-add".equals(action)) {
-            	System.out.println("member-add 기능 실행");
+            	doAddMember();
         	}
 
             // member-list - 회원 목록
             else if ("member-list".equals(action)) {
-            	System.out.println("member-list 기능 실행");
+            	doListMembers();
         	}
 
             // rent - 만화책 대여
@@ -320,10 +323,53 @@ public class App {
         }
     }
     
-	// 1
+    // member-add - 회원 등록
+    private void doAddMember() {
+    	System.out.println("[회원 등록] 정보를 입력하세요.");
+
+    	System.out.print("이름: ");
+    	String name = sc.nextLine().trim();
+
+    	System.out.print("연락처: ");
+    	String phone = sc.nextLine().trim();
+
+    	if (name.isBlank() || phone.isBlank()) {
+    		System.out.println("이름과 연락처는 공백일 수 없습니다.");
+    		return;
+    	}
+
+		long newId = memberRepository.save(name, phone);
+
+    	if (newId == -1) {
+    		System.out.println("회원 등록에 실패했습니다.");
+    		return;
+    	}
+
+    	System.out.println(newId + "번 회원이 등록되었습니다.");
+    }    
     
+    // member-list - 회원 목록
+    private void doListMembers() {
+    	List<Member> members = memberRepository.findAll();
+
+    	if (members.isEmpty()) {
+    		System.out.println("등록된 회원이 없습니다.");
+    		return;
+    	}
+
+    	System.out.println("회원ID | 이름 | 연락처 | 가입일");
+    	System.out.println("--------------------------------------------------");
+
+    	for (Member member : members) {
+    		System.out.printf("%d | %s | %s | %s%n",
+    				member.getMemberId(),
+    				member.getName(),
+    				member.getPhone(),
+    				member.getRegDate());
+    	}
+    }
     
-	// rent - 만화책 대여
+    // rent - 만화책 대여
 	private void doRent() {
         System.out.println("[만화책 대여] 정보를 입력하세요.");
 
@@ -404,7 +450,7 @@ public class App {
 	
 	private void printRentalList(List<Rental> rentals) {
 	        if (rentals.isEmpty()) {
-	            System.out.println("=> 대여 내역이 없습니다.");
+	            System.out.println("대여 내역이 없습니다.");
 	            return;
 	        }
 

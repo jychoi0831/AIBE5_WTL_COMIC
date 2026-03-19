@@ -102,8 +102,8 @@ public class ComicRepository {
                 PreparedStatement pstmt = conn.prepareStatement(sql)
         ) {
             pstmt.setLong(1, comicId);
-
-            try (ResultSet rs = pstmt.executeQuery("")) {
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                 	Date createdAt = rs.getDate("created_at");
                 	
@@ -150,7 +150,7 @@ public class ComicRepository {
             return false;
         }
     }
-
+    
     // 만화책 삭제
     public String delete(long comicId) {
         // 존재 여부 확인
@@ -158,25 +158,42 @@ public class ComicRepository {
             return DELETE_NOT_FOUND;
         }
 
-        String sql = "DELETE FROM comics WHERE comic_id = ?";
+        String checkRentalSql = """
+                SELECT rent_id
+                FROM rentals
+                WHERE comic_id = ?
+                LIMIT 1
+                """;
+
+        String deleteSql = "DELETE FROM comics WHERE comic_id = ?";
 
         try (
-                Connection conn = DBUtil.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql)
+                Connection conn = DBUtil.getConnection()
         ) {
-            pstmt.setLong(1, comicId);
+            // 대여 이력 존재 여부 확인
+            try (
+                    PreparedStatement checkPstmt = conn.prepareStatement(checkRentalSql)
+            ) {
+                checkPstmt.setLong(1, comicId);
 
-            int affectedRows = pstmt.executeUpdate();
-            return affectedRows > 0 ? DELETE_OK : DELETE_FAIL;
-
-        } catch (SQLException e) {
-        	
-            // rentals 테이블에서 FK로 참조 중이면 삭제 실패
-
-            if ("23000".equals(e.getSQLState())) {
-                return DELETE_RENTAL_HISTORY_EXISTS;
+                try (ResultSet rs = checkPstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return DELETE_RENTAL_HISTORY_EXISTS;
+                    }
+                }
             }
 
+            // 대여 이력이 없으면 삭제
+            try (
+                    PreparedStatement deletePstmt = conn.prepareStatement(deleteSql)
+            ) {
+                deletePstmt.setLong(1, comicId);
+
+                int affectedRows = deletePstmt.executeUpdate();
+                return affectedRows > 0 ? DELETE_OK : DELETE_FAIL;
+            }
+
+        } catch (SQLException e) {
             e.printStackTrace();
             return DELETE_FAIL;
         }
