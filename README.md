@@ -60,7 +60,7 @@
 
 ```jsx
 AIBE5_WTL_COMIC/
-├─ src/                           
+├─ src/
 │  ├─ app/
 │  │  ├─ Main.java
 │  │  └─ App.java
@@ -74,7 +74,7 @@ AIBE5_WTL_COMIC/
 │     ├─ MemberRepository.java
 │     └─ RentalRepository.java
 ├─ image.png
-└─ README.md                      
+└─ README.md
 ```
 
 ### 구조 설명
@@ -308,6 +308,11 @@ rental-list
 앞으로는 다음과 같은 방향으로 보완할 수 있습니다.
 
 - 출력 형식 통일성 개선
+- 커맨드 파싱 개선
+    - 기존: 명령어 + 인자 를 한줄에 입력받아 분리(split) 처리
+    - 개선: 명령어 입력 후 필요한 값을 순차적으로 입력
+        - 문자열 파싱 로직(Rq.java) 제거 → 코드 단순화
+        - 사용자 입력 흐름 명확화 → CLI UX 개선
 - 추가 기능 개발 제안
     - 연체료 계산 기능
     - 검색 기능
