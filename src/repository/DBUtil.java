@@ -6,10 +6,11 @@ import java.sql.SQLException;
 
 public class DBUtil {
 	
-	// DB 접속 정보
+	// MySQL DB 접속 정보
 	private static final String URL = "jdbc:mysql://localhost:3306/comic_rental?serverTimezone=Asia/Seoul";
     private static final String USER = "root"; 
     private static final String PASSWORD = "여기에_본인_mysql_비밀번호"; // 여기에 본인 MySQL 비밀번호
+
 
     public static Connection getConnection() throws SQLException {
         try {
@@ -17,7 +18,7 @@ public class DBUtil {
         } catch (ClassNotFoundException e) {
             throw new SQLException("MySQL JDBC 드라이버를 찾을 수 없습니다.", e);
         }
-
+        
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }
